@@ -1,36 +1,64 @@
-import { Loading } from '@/components/shared';
-import useTeams from 'hooks/useTeams';
 import { GetServerSidePropsContext } from 'next';
-import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
-import { useRouter } from 'next/router';
-import { useEffect } from 'react';
-import type { NextPageWithLayout } from 'types';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from 'pages/api/auth/[...nextauth]';
+import prisma from '@/lib/prisma';
 
-const Dashboard: NextPageWithLayout = () => {
-  const router = useRouter();
-  const { teams, isLoading } = useTeams();
-
-  useEffect(() => {
-    if (isLoading || !teams) {
-      return;
-    }
-
-    if (teams.length > 0) {
-      router.push(`/teams/${teams[0].slug}/settings`);
-    } else {
-      router.push('teams?newTeam=true');
-    }
-  }, [isLoading, router, teams]);
-
-  return <Loading />;
-};
-
-export async function getStaticProps({ locale }: GetServerSidePropsContext) {
-  return {
-    props: {
-      ...(locale ? await serverSideTranslations(locale, ['common']) : {}),
-    },
-  };
+export default function Dashboard() {
+  // This component will never render as we redirect in getServerSideProps
+  return null;
 }
 
-export default Dashboard;
+export const getServerSideProps = async (
+  context: GetServerSidePropsContext
+) => {
+  const session = await getServerSession(context.req, context.res, authOptions);
+
+  if (!session) {
+    return {
+      redirect: {
+        destination: '/auth/login',
+        permanent: false,
+      },
+    };
+  }
+
+  // Get user role and redirect to appropriate dashboard
+  const user = await prisma.user.findUnique({
+    where: { email: session.user.email },
+  });
+
+  if (!user) {
+    return {
+      redirect: {
+        destination: '/auth/login',
+        permanent: false,
+      },
+    };
+  }
+
+  // Redirect based on user role
+  switch (user.userRole) {
+    case 'STAFF_ADMIN':
+      return {
+        redirect: {
+          destination: '/admin/dashboard',
+          permanent: false,
+        },
+      };
+    case 'DOCTOR':
+      return {
+        redirect: {
+          destination: '/doctor/dashboard',
+          permanent: false,
+        },
+      };
+    case 'PATIENT':
+    default:
+      return {
+        redirect: {
+          destination: '/patient/dashboard',
+          permanent: false,
+        },
+      };
+  }
+};
