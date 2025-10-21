@@ -1,7 +1,7 @@
 import { GetServerSidePropsContext } from 'next';
 import { getServerSession } from 'next-auth/next';
-import { authOptions } from 'pages/api/auth/[...nextauth]';
-import prisma from '@/lib/prisma';
+import { getAuthOptions } from '@/lib/nextAuth';
+import { prisma } from '@/lib/prisma';
 
 export default function Dashboard() {
   // This component will never render as we redirect in getServerSideProps
@@ -11,7 +11,7 @@ export default function Dashboard() {
 export const getServerSideProps = async (
   context: GetServerSidePropsContext
 ) => {
-  const session = await getServerSession(context.req, context.res, authOptions);
+  const session = await getServerSession(context.req, context.res, getAuthOptions(context.req, context.res));
 
   if (!session) {
     return {
@@ -24,7 +24,7 @@ export const getServerSideProps = async (
 
   // Get user role and redirect to appropriate dashboard
   const user = await prisma.user.findUnique({
-    where: { email: session.user.email },
+    where: { email: session.user.email! },
   });
 
   if (!user) {

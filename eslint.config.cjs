@@ -61,9 +61,18 @@ module.exports = [{
         "components/defaultLanding/**/*.tsx",
         "components/emailTemplates/**/*.tsx",
         "pages/index.tsx",
+        "pages/about.tsx",
+        "pages/services.tsx",
+        "pages/doctors.tsx",
+        "pages/contact.tsx",
+        "pages/patient/**/*.tsx",
+        "pages/admin/**/*.tsx",
+        "pages/doctor/**/*.tsx",
     ],
 
     rules: {
         "i18next/no-literal-string": "off",
+        "react/no-unescaped-entities": "off",
+        "@typescript-eslint/no-unused-vars": "warn",
     },
 }];

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { GetServerSidePropsContext } from 'next';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '../api/auth/[...nextauth]';
+import { getAuthOptions } from '@/lib/nextAuth';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import Head from 'next/head';
 import Link from 'next/link';
@@ -14,7 +14,7 @@ import {
   CheckCircleIcon,
   XCircleIcon 
 } from '@heroicons/react/24/outline';
-import prisma from '@/lib/prisma';
+import { prisma } from '@/lib/prisma';
 
 interface AdminDashboardProps {
   stats: {
@@ -274,6 +274,7 @@ export default function AdminDashboard({ stats }: AdminDashboardProps) {
 }
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
+  const authOptions = getAuthOptions(context.req, context.res);
   const session = await getServerSession(context.req, context.res, authOptions);
 
   if (!session) {
@@ -287,7 +288,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   // Check if user is admin
   const user = await prisma.user.findUnique({
-    where: { email: session.user.email },
+    where: { email: session.user.email! },
   });
 
   if (!user || user.userRole !== 'STAFF_ADMIN') {

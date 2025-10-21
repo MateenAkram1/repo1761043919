@@ -1,13 +1,13 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { getServerSession } from 'next-auth/next';
-import { authOptions } from '../auth/[...nextauth]';
-import prisma from '@/lib/prisma';
+import { getAuthOptions } from '@/lib/nextAuth';
+import { prisma } from '@/lib/prisma';
 
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
-  const session = await getServerSession(req, res, authOptions);
+  const session = await getServerSession(req, res, getAuthOptions(req, res));
 
   if (!session || !session.user) {
     return res.status(401).json({ error: 'Unauthorized' });
@@ -17,7 +17,7 @@ export default async function handler(
     if (req.method === 'GET') {
       // Get appointments
       const user = await prisma.user.findUnique({
-        where: { email: session.user.email },
+        where: { email: session.user.email! },
         include: {
           patientProfile: true,
           doctorProfile: true,
@@ -90,7 +90,7 @@ export default async function handler(
       }
 
       const user = await prisma.user.findUnique({
-        where: { email: session.user.email },
+        where: { email: session.user.email! },
         include: { patientProfile: true },
       });
 

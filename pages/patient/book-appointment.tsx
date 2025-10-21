@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { GetServerSidePropsContext } from 'next';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '../api/auth/[...nextauth]';
+import { getAuthOptions } from '@/lib/nextAuth';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import Head from 'next/head';
 import Link from 'next/link';
@@ -112,7 +112,7 @@ export default function BookAppointment() {
   };
 
   // Generate time slots (9 AM to 5 PM, 30-minute intervals)
-  const timeSlots = [];
+  const timeSlots: string[] = [];
   for (let hour = 9; hour < 17; hour++) {
     for (let minute = 0; minute < 60; minute += 30) {
       const time = `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
@@ -283,7 +283,7 @@ export default function BookAppointment() {
 }
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
-  const session = await getServerSession(context.req, context.res, authOptions);
+  const session = await getServerSession(context.req, context.res, getAuthOptions(context.req, context.res));
 
   if (!session) {
     return {

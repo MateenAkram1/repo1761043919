@@ -1,7 +1,7 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { getServerSession } from 'next-auth/next';
-import { authOptions } from '../auth/[...nextauth]';
-import prisma from '@/lib/prisma';
+import { getAuthOptions } from '@/lib/nextAuth';
+import { prisma } from '@/lib/prisma';
 
 export default async function handler(
   req: NextApiRequest,
@@ -18,6 +18,7 @@ export default async function handler(
 
       return res.status(200).json(services);
     } else if (req.method === 'POST') {
+      const authOptions = getAuthOptions(req, res);
       const session = await getServerSession(req, res, authOptions);
 
       if (!session || !session.user) {
@@ -25,7 +26,7 @@ export default async function handler(
       }
 
       const user = await prisma.user.findUnique({
-        where: { email: session.user.email },
+        where: { email: session.user.email! },
       });
 
       if (!user || user.userRole !== 'STAFF_ADMIN') {

@@ -1,14 +1,14 @@
 import { useState, useEffect } from 'react';
 import { GetServerSidePropsContext } from 'next';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '../api/auth/[...nextauth]';
+import { getAuthOptions } from '@/lib/nextAuth';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import Head from 'next/head';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
 import { CalendarIcon, ClockIcon, UserIcon } from '@heroicons/react/24/outline';
 import { useSession } from 'next-auth/react';
-import prisma from '@/lib/prisma';
+import { prisma } from '@/lib/prisma';
 
 interface DoctorProfile {
   id: string;
@@ -327,6 +327,7 @@ export default function DoctorDashboard({ doctorProfile }: { doctorProfile: Doct
 }
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
+  const authOptions = getAuthOptions(context.req, context.res);
   const session = await getServerSession(context.req, context.res, authOptions);
 
   if (!session) {
@@ -340,7 +341,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   // Check if user is a doctor
   const user = await prisma.user.findUnique({
-    where: { email: session.user.email },
+    where: { email: session.user.email! },
     include: { doctorProfile: true },
   });
 
