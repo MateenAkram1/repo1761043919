@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { GetServerSidePropsContext } from 'next';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '../api/auth/[...nextauth]';
+import { getAuthOptions } from '@/lib/nextAuth';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import Head from 'next/head';
 import Link from 'next/link';
@@ -264,6 +264,7 @@ export default function PatientDashboard() {
 }
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
+  const authOptions = getAuthOptions(context.req, context.res);
   const session = await getServerSession(context.req, context.res, authOptions);
 
   if (!session) {

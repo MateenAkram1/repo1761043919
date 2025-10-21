@@ -1,10 +1,44 @@
 services:
-  db:
+  postgres:
     image: postgres:16.4
     restart: always
+    container_name: toothdoctor-db
     environment:
-      POSTGRES_PASSWORD: admin
-      POSTGRES_USER: admin
-      POSTGRES_DB: saas-starter-kit
+      POSTGRES_PASSWORD: toothdoctor123
+      POSTGRES_USER: toothdoctor
+      POSTGRES_DB: toothdoctor
     ports:
-      - 5432:5432
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - toothdoctor-network
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: toothdoctor-app
+    restart: always
+    ports:
+      - "4002:4002"
+    environment:
+      DATABASE_URL: postgresql://toothdoctor:toothdoctor123@postgres:5432/toothdoctor
+      NEXTAUTH_URL: http://localhost:4002
+      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET}
+      NODE_ENV: production
+    depends_on:
+      - postgres
+    networks:
+      - toothdoctor-network
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/.next
+
+volumes:
+  postgres-data:
+
+networks:
+  toothdoctor-network:
+    driver: bridge

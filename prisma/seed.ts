@@ -207,17 +207,21 @@ async function main() {
   ];
 
   for (const service of services) {
-    await prisma.dentalService.upsert({
+    const existing = await prisma.dentalService.findFirst({
       where: { name: service.name },
-      update: {},
-      create: {
-        name: service.name,
-        description: service.description,
-        price: service.price,
-        duration: service.duration,
-        isActive: true,
-      },
     });
+    
+    if (!existing) {
+      await prisma.dentalService.create({
+        data: {
+          name: service.name,
+          description: service.description,
+          price: service.price,
+          duration: service.duration,
+          isActive: true,
+        },
+      });
+    }
   }
 
   console.log('✓ Created dental services');
